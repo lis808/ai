@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - My Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Admin Panel</h1>
+    <nav><a href="/index.html">Home</a></nav>
+  </header>
+
+  <section id="form-section">
+    <h2>Add / Edit Project</h2>
+    <form id="project-form">
+      <input type="hidden" id="project-id">
+      <div>
+        <label>Title</label>
+        <input type="text" id="title" required>
+      </div>
+      <div>
+        <label>Description</label>
+        <textarea id="description" required></textarea>
+      </div>
+      <div>
+        <label>Image URL</label>
+        <input type="text" id="image">
+      </div>
+      <button type="submit">Save</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Existing Projects</h2>
+    <div id="project-list"></div>
+  </section>
+
+  <script>
+    async function loadProjects() {
+      const res = await fetch('/api/projects');
+      const projects = await res.json();
+      const list = document.getElementById('project-list');
+      list.innerHTML = projects.map(p => `
+        <div class="project" data-id="${p.id}">
+          <h3>${p.title}</h3>
+          <button onclick="editProject('${p.id}')">Edit</button>
+          <button onclick="deleteProject('${p.id}')">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteProject(id) {
+      await fetch('/api/projects/' + id, { method: 'DELETE' });
+      loadProjects();
+    }
+
+    async function editProject(id) {
+      const res = await fetch('/api/projects');
+      const projects = await res.json();
+      const proj = projects.find(p => p.id === id);
+      document.getElementById('project-id').value = proj.id;
+      document.getElementById('title').value = proj.title;
+      document.getElementById('description').value = proj.description;
+      document.getElementById('image').value = proj.image || '';
+    }
+
+    document.getElementById('project-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('project-id').value;
+      const project = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        image: document.getElementById('image').value
+      };
+      if (id) {
+        await fetch('/api/projects/' + id, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(project)
+        });
+      } else {
+        await fetch('/api/projects', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(project)
+        });
+      }
+      e.target.reset();
+      document.getElementById('project-id').value = '';
+      loadProjects();
+    });
+
+    loadProjects();
+  </script>
+</body>
+</html>

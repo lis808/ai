@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>My Portfolio</h1>
+    <nav><a href="/admin.html">Admin</a></nav>
+  </header>
+  <main id="projects"></main>
+
+  <script>
+    async function loadProjects() {
+      const res = await fetch('/api/projects');
+      const projects = await res.json();
+      const container = document.getElementById('projects');
+      container.innerHTML = projects.map(p => `
+        <div class="project">
+          <h2>${p.title}</h2>
+          <p>${p.description}</p>
+          ${p.image ? `<img src="${p.image}" alt="${p.title}">` : ''}
+        </div>
+      `).join('');
+    }
+    loadProjects();
+  </script>
+</body>
+</html>
